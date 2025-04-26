@@ -74,6 +74,17 @@ Task {
 
 ---
 
+## Sample App
+
+A sample SwiftUI app is included in the `/Sample/CoreMCPKitSampleApp/` directory.
+
+To run:
+1. Open `CoreMCPKitSampleApp.xcodeproj`.
+2. Add `CoreMCPKit` as a local Swift Package.
+3. Build and run the app.
+
+
+
 ## 📚 Additional Information
 
 - **Documentation**: Visit the [GitHub Wiki](https://github.com/username/CoreMCPKit/wiki) for detailed guides.

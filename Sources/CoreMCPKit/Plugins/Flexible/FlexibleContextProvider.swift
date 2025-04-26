@@ -6,26 +6,57 @@
 //
 
 import Foundation
+
 public final class FlexibleContextProvider: MCPContextProvider {
     private let parser: PromptToFlexibleQueryParser
+    private let etsService: EtsHotelService
 
-    public var contextType: String { "accommodation_search" }
+    public var contextType: String { "ets_hotel_search" }
 
-    public init(parser: PromptToFlexibleQueryParser) {
+    public init(parser: PromptToFlexibleQueryParser, etsService: EtsHotelService) {
         self.parser = parser
+        self.etsService = etsService
     }
 
     public func provideContext(for prompt: String) async throws -> [String: Any] {
+        print("🚀 FlexibleContextProvider running for prompt: \(prompt)")
+
+        // Prompt'tan sorgu çıkar
         let query = try await parser.parse(from: prompt)
+        print("✅ Parsed FlexibleQuery: \(query)")
+
+        // AutoComplete ile URL al
+        guard let autoCompleteURL = try await etsService.autoComplete(query: query.location) else {
+            throw NSError(domain: "FlexibleContextProvider", code: 1001, userInfo: [NSLocalizedDescriptionKey: "No URL found from autoComplete for location \(query.location)"])
+        }
+
+        print("🔗 Found URL from AutoComplete: \(autoCompleteURL)")
+
+        // ETS Sorgusu oluştur
+        let etsQuery = EtsHotelSearchQuery(
+            location: autoCompleteURL,
+            type: query.type,
+            checkInMonth: query.checkInMonth,
+            checkInDate: query.checkInDate,
+            checkOutDate: query.checkOutDate,
+            adultCount: query.adultCount,
+            childCount: query.childCount,
+            childAges: query.childAges,
+            url: autoCompleteURL, // artık kesin URL var
+            priceConcern: query.priceConcern
+        )
+
+        print("📋 ETS Query Prepared: \(etsQuery)")
+
+        // ETS API ile otel arama
+        let result = try await etsService.searchHotels(query: etsQuery)
+        print("📦 ETS API Result: \(result)")
 
         return [
             "type": contextType,
-            "data": [
-                "location": query.location,
-                "type": query.type ?? "",
-                "check_in_month": query.checkInMonth ?? "",
-                "price_concern": query.priceConcern ?? false
-            ]
+            "data": result
         ]
     }
+
 }
+

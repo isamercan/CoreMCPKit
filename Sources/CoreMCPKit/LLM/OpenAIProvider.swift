@@ -26,7 +26,7 @@ public final class OpenAIProvider: LLMProvider {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body: [String: Any] = [
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o-mini",
             "messages": [
                 ["role": "system", "content": "You are a helpful AI agent."],
                 ["role": "user", "content": fullPrompt]

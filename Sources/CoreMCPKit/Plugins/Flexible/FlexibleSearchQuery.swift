@@ -6,9 +6,16 @@
 //
 
 import Foundation
+
 public struct FlexibleSearchQuery: Codable {
-    public let location: String
-    public let type: String?
-    public let checkInMonth: String?
-    public let priceConcern: Bool?
+    let location: String
+    let type: String?
+    let checkInMonth: String?
+    let checkInDate: String?
+    let checkOutDate: String?
+    let adultCount: Int?
+    let childCount: Int?
+    let childAges: [Int]?
+    let url: String?
+    let priceConcern: Bool?
 }
