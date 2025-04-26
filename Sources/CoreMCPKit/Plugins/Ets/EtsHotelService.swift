@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class EtsHotelService  {
+public final class EtsHotelService: EtsHotelServiceProvider  {
     public init() {}
 
     public func searchHotels(query: EtsHotelSearchQuery) async throws -> [String: Any] {
@@ -16,7 +16,7 @@ public final class EtsHotelService  {
         let requestBody: [String: Any] = [
             "checkInDate": query.checkInDate ?? "",
             "checkOutDate": query.checkOutDate ?? "",
-            "adultCount": 2,//(query.adultCount ?? 0) <= 1 ? 2 : (query.adultCount ?? 2),
+            "adultCount": query.adultCount ?? 0,
             "childCount": query.childCount ?? 0,
             "childAges": query.childAges ?? [],
             "url": query.url ?? "Genel-Otelleri",

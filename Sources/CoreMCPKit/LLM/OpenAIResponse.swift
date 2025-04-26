@@ -7,12 +7,14 @@
 
 import Foundation
 
-struct OpenAIResponse: Codable {
-    struct Choice: Codable {
-        struct Message: Codable {
-            let content: String
+public struct OpenAIResponse: Codable {
+    public struct Choice: Codable {
+        public struct Message: Codable {
+            public let role: String
+            public let content: String
         }
-        let message: Message
+        public let message: Message
     }
-    let choices: [Choice]
+    public let choices: [Choice]
 }
+

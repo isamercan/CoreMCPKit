@@ -7,15 +7,19 @@ enum Configuration {
     }
 
     static func value<T>(for key: String) throws -> T where T: LosslessStringConvertible {
-        guard let object = ProcessInfo.processInfo.environment[key] else {
+        // First try to get from environment
+        if let object = ProcessInfo.processInfo.environment[key],
+           let value = T(object) {
+            return value
+        }
+        
+        // If not found in environment, use Env.swift
+        switch key {
+        case "OPENAI_API_KEY":
+            return Env.openAIApiKey as! T
+        default:
             throw Error.missingKey
         }
-
-        guard let value = T(object) else {
-            throw Error.invalidKey
-        }
-
-        return value
     }
 }
 

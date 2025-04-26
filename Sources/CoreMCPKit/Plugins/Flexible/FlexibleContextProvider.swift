@@ -9,11 +9,11 @@ import Foundation
 
 public final class FlexibleContextProvider: MCPContextProvider {
     private let parser: PromptToFlexibleQueryParser
-    private let etsService: EtsHotelService
+    private let etsService: EtsHotelServiceProvider
 
     public var contextType: String { "ets_hotel_search" }
 
-    public init(parser: PromptToFlexibleQueryParser, etsService: EtsHotelService) {
+    public init(parser: PromptToFlexibleQueryParser, etsService: EtsHotelServiceProvider) {
         self.parser = parser
         self.etsService = etsService
     }
