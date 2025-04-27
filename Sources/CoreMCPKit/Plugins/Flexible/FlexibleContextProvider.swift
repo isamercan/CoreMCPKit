@@ -19,8 +19,9 @@ public final class FlexibleContextProvider: MCPContextProvider {
     }
 
     public func provideContext(for prompt: String) async throws -> [String: Any] {
+        
         print("🚀 FlexibleContextProvider running for prompt: \(prompt)")
-
+        
         // Prompt'tan sorgu çıkar
         let query = try await parser.parse(from: prompt)
         print("✅ Parsed FlexibleQuery: \(query)")
@@ -37,12 +38,12 @@ public final class FlexibleContextProvider: MCPContextProvider {
             location: autoCompleteURL,
             type: query.type,
             checkInMonth: query.checkInMonth,
-            checkInDate: query.checkInDate,
-            checkOutDate: query.checkOutDate,
+            checkInDate: query.checkInDate?.validateDate(),
+            checkOutDate: query.checkOutDate?.validateDate(),
             adultCount: query.adultCount,
             childCount: query.childCount,
             childAges: query.childAges,
-            url: autoCompleteURL, // artık kesin URL var
+            url: autoCompleteURL,
             priceConcern: query.priceConcern
         )
 

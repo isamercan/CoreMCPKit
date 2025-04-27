@@ -12,7 +12,8 @@ public final class PromptToFlexibleQueryParser {
     public init(openAIService: OpenAIProvider) {
         self.openAIService = openAIService
     }
-
+    
+    
     public func parse(from userPrompt: String) async throws -> FlexibleSearchQuery {
         let systemPrompt = """
         You are an assistant that extracts structured hotel or villa search parameters from the user's request.
@@ -51,16 +52,37 @@ public final class PromptToFlexibleQueryParser {
         10. adultCount: At least 2. Default to 2 if not provided.
         11. url: Construct from location and type (e.g., 'Istanbul-Otelleri' or 'Istanbul-Villalari').
         12. priceConcern: true if user mentions budget, cheap, affordable.
+        13. All dates MUST be in the future, at least 3 days from today.
 
         Make sure all dates are valid and realistic future dates.
         """
       
-        let jsonString = try await openAIService.send(systemPrompt: systemPrompt, userPrompt: userPrompt)
+        let rawLLMResponse = try await openAIService.send(systemPrompt: systemPrompt, userPrompt: userPrompt)
 
-        guard let jsonData = jsonString.data(using: .utf8) else {
-            throw NSError(domain: "PromptParse", code: 1)
+        // Doğrudan fonksiyon çağır
+        let cleanedJSON = cleanedJSONString(rawLLMResponse)
+
+        print("📊 Cleaned LLM JSON: \(cleanedJSON)")
+
+        guard let jsonData = cleanedJSON.data(using: .utf8) else {
+            throw NSError(domain: "LLMParser", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON String"])
         }
 
-        return try JSONDecoder().decode(FlexibleSearchQuery.self, from: jsonData)
+        let parsedQuery = try JSONDecoder().decode(FlexibleSearchQuery.self, from: jsonData)
+
+        return parsedQuery
     }
+    
+    func cleanedJSONString(_ raw: String) -> String {
+        var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if cleaned.hasPrefix("```json") || cleaned.hasPrefix("```") {
+            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
+            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
+            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return cleaned
+    }
+
 }

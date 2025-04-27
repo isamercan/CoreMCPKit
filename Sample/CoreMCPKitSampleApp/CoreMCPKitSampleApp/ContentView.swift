@@ -10,8 +10,10 @@ import CoreMCPKit
 
 struct ContentView: View {
     @State private var userPrompt: String = ""
-    @State private var response: String = "Enter your prompt."
+    @State private var response: String = ""
+    @State private var hotels: [Hotel] = []
     @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
 
     private let manager: MCPAgentManager
 
@@ -39,17 +41,17 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
+            VStack {
                 TextField("Type your request...", text: $userPrompt)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
 
                 Button(action: {
                     Task {
-                        await processPrompt()
+                        await handlePrompt()
                     }
                 }) {
-                    Text(isLoading ? "Processing..." : "Send")
+                    Text(isLoading ? "Searching..." : "Search")
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(isLoading ? Color.gray : Color.blue)
@@ -59,28 +61,97 @@ struct ContentView: View {
                 .disabled(isLoading || userPrompt.isEmpty)
                 .padding(.horizontal)
 
-                ScrollView {
-                    Text(response)
+                if !hotels.isEmpty {
+                    HotelListView(hotels: hotels)
+                } else if !response.isEmpty {
+                    ScrollView {
+                        Text(response)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+
+                if let error = errorMessage {
+                    Text("❌ \(error)")
+                        .foregroundColor(.red)
                         .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 Spacer()
             }
-            .navigationTitle("CoreMCPKit Sample")
+            .navigationTitle("ETS Hotel Finder")
         }
     }
 
-    private func processPrompt() async {
+    private func handlePrompt() async {
         guard !userPrompt.isEmpty else { return }
         isLoading = true
-        response = "Processing..."
+        response = ""
+        hotels = []
+        errorMessage = nil
+
         do {
-            let result = try await manager.respond(to: userPrompt)
-            response = result
+            let resultString = try await manager.respond(to: userPrompt)
+            response = resultString
+
+            if let data = resultString.data(using: .utf8),
+               let result = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+               let etsData = result["data"] as? [String: Any],
+               let etsJSON = try? JSONSerialization.data(withJSONObject: etsData, options: []),
+               let parsedHotels = try? JSONDecoder().decode(ETSHotelResponse.self, from: etsJSON) {
+                hotels = parsedHotels.hotels ?? []
+                print(parsedHotels.hotels?.forEach({$0.hotelName}))
+            }
         } catch {
-            response = "❌ Error: \(error.localizedDescription)"
+            errorMessage = error.localizedDescription
         }
+
         isLoading = false
+    }
+}
+
+    
+    
+
+import SwiftUI
+
+struct HotelListView: View {
+    let hotels: [Hotel]
+
+    var body: some View {
+        List(hotels) { hotel in
+            VStack(alignment: .leading, spacing: 8) {
+                AsyncImage(url: URL(string: hotel.imageUrl ?? String())) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                            .cornerRadius(10)
+                    } else {
+                        ProgressView()
+                    }
+                }
+
+                Text(hotel.hotelName ?? "Not Found hotel name")
+                    .font(.headline)
+
+                Text("⭐️ \(hotel.rating) | 💬 \(hotel.commentCount) yorum")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                if let firstRoom = (hotel.rooms ?? []).first {
+                    Text("\(firstRoom.roomName) • \(firstRoom.price ?? 0, specifier: "%.2f") \(firstRoom.currency)")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                }
+
+                Text(hotel.locations ?? String("Not Found hotel locations"))
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+            }
+            .padding(.vertical, 8)
+        }
+        .listStyle(PlainListStyle())
     }
 }
