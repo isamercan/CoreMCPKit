@@ -22,6 +22,11 @@ public final class MCPAgentManager {
     }
 
     public func respond(to prompt: String) async throws -> String {
+        let contexts = try await respondWithContexts(to: prompt)
+        return try await llm.complete(prompt: prompt, contexts: contexts)
+    }
+    
+    public func respondWithContexts(to prompt: String) async throws -> [[String: Any]] {
         var allContexts: [[String: Any]] = []
 
         for provider in contextProviders {
@@ -33,6 +38,8 @@ public final class MCPAgentManager {
             }
         }
 
-        return try await llm.complete(prompt: prompt, contexts: allContexts)
+        return allContexts
     }
+
+
 }

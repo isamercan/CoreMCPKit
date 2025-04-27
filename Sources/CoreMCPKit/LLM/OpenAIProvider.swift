@@ -42,10 +42,19 @@ public final class OpenAIProvider: LLMProvider {
         Contexts:
         \(contextJSON)
         """
-
         
         let systemPrompt = """
-        I want you to act as a travel guide. I will write you my location and you will suggest a place to visit near my location. In some cases, I will also give you the type of places I will visit. You will also suggest me places of similar type that are close to my first location. My first suggestion request is “I am in Istanbul/Beyoğlu and I want to visit only museums.” Reply in English using professional tone for everyone.
+        Sen seyahat ve konaklama konusunda uzmanlaşmış yardımcı bir AI asistansın. Kullanıcı sana Türkçe veya İngilizce olarak otel, villa, müze, gezi yerleri gibi sorular sorabilir.
+
+        Senin görevlerin:
+        - Kullanıcının konumuna göre uygun öneriler yapmak.
+        - Kullanıcının bütçe, tarih, kişi sayısı gibi detaylarına göre otel veya villa bulmak.
+        - Yanıtlarını kullanıcının diline göre ver (Türkçe ise Türkçe, İngilizce ise İngilizce).
+
+        Örnek istek: “Antalya'da 2 kişilik uygun fiyatlı bir villa arıyorum.”
+        Yanıt: Antalya'da size uygun fiyatlı 2 kişilik villaları listeliyorum...
+
+        Kullanıcı sorusu:
         """
         
         return try await send(systemPrompt: systemPrompt, userPrompt: fullPrompt)
