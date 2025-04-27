@@ -26,7 +26,7 @@ public final class OpenAIProvider: LLMProvider {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body: [String: Any] = [
-            "model": "gpt-4o-mini",
+            "model": "gpt-4o",
             "messages": [
                 ["role": "system", "content": "You are a helpful AI agent."],
                 ["role": "user", "content": fullPrompt]
@@ -49,7 +49,7 @@ public extension OpenAIProvider {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body: [String: Any] = [
-            "model": "gpt-4o-mini",
+            "model": "gpt-4o",
             "messages": [
                 ["role": "system", "content": systemPrompt],
                 ["role": "user", "content": userPrompt]
