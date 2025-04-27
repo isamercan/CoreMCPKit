@@ -31,22 +31,28 @@ public final class PromptToFlexibleQueryParser {
           "priceConcern": true or false
         }
 
-        Strict Rules:
-        1. ONLY return valid JSON. No text, no comments.
-        2. Use the EXACT city name mentioned in the prompt for the 'location' field (e.g., 'Ankara', not 'Ankara-Otelleri').
-        3. Detect 'otel' or 'villa' from user wording. Default to 'otel' if not specified.
-        4. If the user mentions 'haftasonu' (weekend) or similar terms, set checkInDate to the NEAREST future Saturday (at least 3 days after today) and checkOutDate to the following Sunday for a 1-night stay, unless specific dates or months are provided.
-        5. If a specific month or date is mentioned, use those dates, ensuring they are in the future (2025 or later) and at least 3 days after today.
-        6. If NO month, date, or 'haftasonu' is mentioned, set checkInDate and checkOutDate to null.
-        7. Dates must always be in the future, at least 3 days after today. For 1-night stays (e.g., '1 gecelik'), checkOutDate must be the day after checkInDate. For other stays, checkOutDate should be 2-4 days after checkInDate.
-        8. adultCount must be at least 2. Assume 2 if not specified.
-        9. url must be based on location and type (e.g., 'Istanbul-Otelleri' for otel, 'Istanbul-Villalari' for villa).
-        10. priceConcern is true if user mentions budget, cheap, affordable terms.
-        11. If '1 gecelik' or similar is mentioned, prioritize a 1-night stay with checkOutDate as the next day, respecting other date rules (e.g., weekend for 'haftasonu').
-        12. To select the nearest Saturday for 'haftasonu':
-            - Start from today + 3 days.
-            - Calculate the next Saturday by adding the required days based on the current day of the week.
-            - Ensure the selected Saturday is the closest possible to today while respecting the 3-day future rule.
+        STRICT RULES:
+        1. ONLY return valid JSON. No text or comments.
+        2. location: Use the EXACT city from the prompt (e.g., 'Ankara').
+        3. type: Detect 'otel' or 'villa', default to 'otel'.
+        4. Dates MUST always be in the FUTURE, at least 3 days after today (2025 or later). Never return past dates.
+        5. If any given date is in the past, replace it with a valid date at least 3 days from today.
+        6. If 'haftasonu' (weekend) is mentioned:
+           - Calculate the next possible Saturday (>= 3 days from today).
+           - checkInDate: That Saturday.
+           - checkOutDate: The following Sunday (1-night stay).
+        7. If 'önümüzdeki hafta' (next week) is mentioned:
+           - Calculate the first available day in next week (>= 3 days from today).
+           - Set checkInDate and checkOutDate 2-4 days apart, both in next week.
+        8. If NO specific date, month, or 'haftasonu' is mentioned:
+           - Set checkInDate to 3 days from today.
+           - Set checkOutDate to 4 days from today.
+        9. If '1 gecelik' is mentioned, checkOutDate must be exactly 1 day after checkInDate, respecting all future date rules.
+        10. adultCount: At least 2. Default to 2 if not provided.
+        11. url: Construct from location and type (e.g., 'Istanbul-Otelleri' or 'Istanbul-Villalari').
+        12. priceConcern: true if user mentions budget, cheap, affordable.
+
+        Make sure all dates are valid and realistic future dates.
         """
       
         let jsonString = try await openAIService.send(systemPrompt: systemPrompt, userPrompt: userPrompt)
