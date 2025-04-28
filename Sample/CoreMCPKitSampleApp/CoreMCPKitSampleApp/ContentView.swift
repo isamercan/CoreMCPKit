@@ -152,7 +152,7 @@ struct HotelListView: View {
                     Text(hotel.hotelName ?? "Not Available")
                         .font(.headline)
 
-                    Text("⭐️ \(hotel.rating) | 💬 \(hotel.commentCount)")
+                    Text("⭐️ \(5) | 💬 \(hotel.commentCount)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
