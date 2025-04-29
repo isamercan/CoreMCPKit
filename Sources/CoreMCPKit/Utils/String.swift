@@ -29,7 +29,7 @@ public extension String {
         return self
     }
     
-    public func cleanedJSONString(_ raw: String) -> String {
+    func cleanedJSONString(_ raw: String) -> String {
         var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Eğer LLM yanıtı ```json ... ``` şeklindeyse temizle

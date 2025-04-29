@@ -59,7 +59,6 @@ public final class EtsHotelService: EtsHotelServiceProvider  {
     }
     
     public func fetchComments(for name: String) async throws -> [String] {
-        
         //https://www.etstur.com/services/api/hotel/detail/
         return [
             

@@ -14,7 +14,7 @@ public struct ETSHotelResponse: Codable {
 }
 
 public struct Hotel: Codable, Identifiable {
-    var id: String { hotelId }
+    public var id: String { hotelId ?? UUID().uuidString }
     
     let hotelId: String?
     let hotelName: String?

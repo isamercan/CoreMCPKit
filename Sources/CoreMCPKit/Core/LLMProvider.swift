@@ -9,4 +9,5 @@ import Foundation
 
 public protocol LLMProvider {
     func complete(prompt: String, contexts: [[String: Any]]) async throws -> String
+    func send(systemPrompt: String, userPrompt: String) async throws -> String
 }

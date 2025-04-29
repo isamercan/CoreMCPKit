@@ -23,11 +23,22 @@ struct ContentView: View {
             let config = MCPConfiguration(openAIApiKey: apiKey)
             let openAI = OpenAIProvider(apiKey: config.openAIApiKey)
             let parser = PromptToFlexibleQueryParser(openAIService: openAI)
+            
+            
+            let preferences = UserPreferencesExtractor(llmService: openAI)
+            let provider = SocialProofExtractor(llmService: openAI)
             let etsService = EtsHotelService()
+            
+            let socialContextProvider = SocialProofContextProvider(
+                provider: provider,
+                preferences: preferences,
+                etsService: etsService
+            )
 
             let tempManager = MCPAgentManager(config: config)
             tempManager.registerProvider(EmotionContextProvider(openAIService: openAI))
             tempManager.registerProvider(FlexibleContextProvider(parser: parser, etsService: etsService))
+            tempManager.registerProvider(socialContextProvider)
             self.manager = tempManager
         } catch {
             fatalError("Failed to initialize: \(error)")

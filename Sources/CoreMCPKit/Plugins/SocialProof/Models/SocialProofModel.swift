@@ -6,7 +6,9 @@
 //
 
 import Foundation
-public struct SocialProof: Codable {
+public typealias PublicSocialProof = SocialProof
+
+public class SocialProof: NSObject, Codable {
     public let reviewCount: Int
     public let averageRating: Double
     public let summary: String
@@ -34,9 +36,14 @@ public enum TrendingStatus: String, Codable {
     case declining = "Geriliyor"
 }
 
-public struct UserPreferences {
-    public let preferredAmenities: [String]?
-    public let budgetRange: (min: Double, max: Double)?
+public struct UserPreferences: Codable {
+    let preferredAmenities: [String]?
+    let budgetRange: BudgetRange?
+}
+
+public struct BudgetRange: Codable {
+    let min: Double
+    let max: Double
 }
 
 // MARK: - Errors
@@ -47,10 +54,17 @@ public enum SocialProofError: Error {
 
 
 // MARK: - Comment Filter
-struct CommentFilter {
-    let minRating: Int? // e.g., only comments with 4+ stars
-    let dateRange: (start: Date, end: Date)? // e.g., last 30 days
-    let keywords: [String]? // e.g., ["havuz", "temizlik"]
+public struct CommentFilter: Sendable {
+    public let minRating: Int?
+    public let dateRange: (start: Date, end: Date)?
+    public let keywords: [String]?
     
-    static let defaultFilter = CommentFilter(minRating: nil, dateRange: nil, keywords: nil)
+    public static let defaultFilter = CommentFilter(minRating: nil, dateRange: nil, keywords: nil)
+    
+    public init(minRating: Int?, dateRange: (start: Date, end: Date)?, keywords: [String]?) {
+        self.minRating = minRating
+        self.dateRange = dateRange
+        self.keywords = keywords
+    }
 }
+

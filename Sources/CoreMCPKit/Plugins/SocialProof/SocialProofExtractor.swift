@@ -1,5 +1,5 @@
 //
-//  SocialProofProvider.swift
+//  SocialProofExtractor.swift
 //  CoreMCPKit
 //
 //  Created by İlker İsa Mercan on 29.04.2025.
@@ -9,16 +9,16 @@ import Foundation
 
 // MARK: - Social Proof Provider (LLM Destekli)
 
-public final class SocialProofProvider: SocialProofProviderProtocol {
+public final class SocialProofExtractor: SocialProofExtractorProtocol {
     private let llmService: LLMProvider
     private let cache = NSCache<NSString, SocialProof>()
     
     public init(llmService: LLMProvider) {
         self.llmService = llmService
     }
-    
-    public func fetchSocialProof(for hotelId: UUID, reviews: [String], userPreferences: UserPreferences?) async throws -> SocialProof {
-        if let cached = cache.object(forKey: hotelId.uuidString as NSString) {
+        
+    public func fetchSocialProof(for hotelUrl: String, reviews: [String], userPreferences: UserPreferences?) async throws -> SocialProof {
+        if let cached = cache.object(forKey: hotelUrl as NSString) {
             return cached
         }
         
@@ -30,7 +30,7 @@ public final class SocialProofProvider: SocialProofProviderProtocol {
         }
         
         let decoded = try JSONDecoder().decode(SocialProof.self, from: jsonData)
-        cache.setObject(decoded, forKey: hotelId.uuidString as NSString)
+        cache.setObject(decoded, forKey: hotelUrl as NSString)
         return decoded
     }
     
