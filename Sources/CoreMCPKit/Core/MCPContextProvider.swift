@@ -12,3 +12,10 @@ public protocol MCPContextProvider {
     var selectedHotelUrl: String? { get set }
     func provideContext(for prompt: String) async throws -> [String: Any]
 }
+
+extension MCPContextProvider {
+    public var selectedHotelUrl: String? {
+        get { nil }
+        set {}
+    }
+}

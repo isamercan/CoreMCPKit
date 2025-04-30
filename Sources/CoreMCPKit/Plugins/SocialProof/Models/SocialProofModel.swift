@@ -6,22 +6,21 @@
 //
 
 import Foundation
-public typealias PublicSocialProof = SocialProof
 
 public class SocialProof: NSObject, Codable {
-    public let reviewCount: Int
-    public let averageRating: Double
-    public let summary: String
-    public let popularityScore: Double
+    public let reviewCount: Int?
+    public let averageRating: Double?
+    public let summary: String?
+    public let popularityScore: Double?
     public let highlightedFeatures: [Feature]?
-    public let sentimentBreakdown: SentimentBreakdown
+    public let sentimentBreakdown: SentimentBreakdown?
     public let trendingStatus: TrendingStatus?
     public let personalizedSummary: String?
 }
 
 public struct Feature: Codable {
-    public let name: String
-    public let score: Double
+    public let name: String?
+    public let score: Double?
 }
 
 public struct SentimentBreakdown: Codable {

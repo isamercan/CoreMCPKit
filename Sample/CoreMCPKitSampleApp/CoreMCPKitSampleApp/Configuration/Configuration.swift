@@ -16,7 +16,7 @@ enum Configuration {
         // If not found in environment, use Env.swift
         switch key {
         case "OPENAI_API_KEY":
-            return "Env.openAIApiKey" as! T
+            return Env.openAIApiKey as! T
         default:
             throw Error.missingKey
         }

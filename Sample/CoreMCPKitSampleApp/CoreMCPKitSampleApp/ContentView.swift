@@ -12,26 +12,27 @@ struct ContentView: View {
     @State private var userPrompt: String = ""
     @State private var hotels: [Hotel] = []
     @State private var llmResponse: String = ""
+    @State private var socialProof: SocialProof? = nil
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
 
     private let manager: MCPAgentManager
-
+    private let socialProofProvider: SocialProofContextProvider
+    
     init() {
         do {
             let apiKey = try Configuration.openAIApiKey
             let config = MCPConfiguration(openAIApiKey: apiKey)
             let openAI = OpenAIProvider(apiKey: config.openAIApiKey)
             let parser = PromptToFlexibleQueryParser(openAIService: openAI)
-            
-            
+                        
             let preferences = UserPreferencesExtractor(llmService: openAI)
             let provider = SocialProofExtractor(llmService: openAI)
             let etsService = EtsHotelService()
             
             let socialContextProvider = SocialProofContextProvider(
                 provider: provider,
-                preferences: preferences,
+                preferenceExtractor: preferences,
                 etsService: etsService
             )
 
@@ -39,11 +40,15 @@ struct ContentView: View {
             tempManager.registerProvider(EmotionContextProvider(openAIService: openAI))
             tempManager.registerProvider(FlexibleContextProvider(parser: parser, etsService: etsService))
             tempManager.registerProvider(socialContextProvider)
+            
             self.manager = tempManager
+            self.socialProofProvider = socialContextProvider
+            
         } catch {
             fatalError("Failed to initialize: \(error)")
         }
     }
+
 
     var body: some View {
         NavigationView {
@@ -66,9 +71,18 @@ struct ContentView: View {
                 .padding(.horizontal)
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        if !hotels.isEmpty {
-                            HotelListView(hotels: hotels, llmResponse: llmResponse)
+                    VStack(spacing: 16) {
+                        if let socialProof = socialProof {
+                            SocialProofCardView(socialProof: socialProof)
+                        }
+
+                        if !hotels.isEmpty, let socialProof = socialProof {
+                            HotelListView(
+                                hotels: hotels,
+                                socialProofs: socialProof
+                            ) { selectedHotel in
+                                self.selectedHotelUrl = selectedHotel.url
+                            }
                         }
 
                         if let error = errorMessage {
@@ -77,16 +91,15 @@ struct ContentView: View {
                                 .padding()
                         }
 
-                        if !isLoading && hotels.isEmpty && llmResponse.isEmpty && errorMessage == nil {
+                        if !isLoading && hotels.isEmpty && socialProof == nil && llmResponse.isEmpty && errorMessage == nil {
                             Text("No results yet. Please enter a request.")
                                 .foregroundColor(.gray)
                         }
                     }
                     .padding()
                 }
-
             }
-            .navigationTitle("Ets MCP Search")
+            .navigationTitle("Hotel Search + Social Proof")
         }
     }
 
@@ -95,13 +108,12 @@ struct ContentView: View {
         isLoading = true
         hotels = []
         llmResponse = ""
+        socialProof = nil
         errorMessage = nil
 
         do {
-            // 1. ETS Context çek
             let contexts = try await manager.respondWithContexts(to: userPrompt)
 
-            // ETS Context’ten otelleri ayıkla
             if let etsContext = contexts.first(where: { ($0["type"] as? String) == "ets_hotel_search" }),
                let etsData = etsContext["data"] as? [String: Any],
                let resultDict = etsData["result"] as? [String: Any],
@@ -110,81 +122,35 @@ struct ContentView: View {
                 let etsJSON = try JSONSerialization.data(withJSONObject: hotelsArray, options: [])
                 let parsedHotels = try JSONDecoder().decode([Hotel].self, from: etsJSON)
 
-                let availableHotels = parsedHotels ?? []
-
-                if availableHotels.isEmpty {
-                    errorMessage = "No available hotels found for your request."
-                } else {
-                    hotels = availableHotels
-                }
-
-            } else {
-                errorMessage = "No valid hotel data found."
+                hotels = parsedHotels ?? []
             }
 
-            // 2. LLM'den açıklama da al
             llmResponse = try await manager.respond(to: userPrompt)
 
         } catch {
-            errorMessage = "❌ LLM ile ilgili bir hata oluştu: \(error.localizedDescription)"
+            errorMessage = "❌ Error: \(error.localizedDescription)"
         }
 
         isLoading = false
     }
-}
 
-struct HotelListView: View {
-    let hotels: [Hotel]
-    let llmResponse: String
-    
-    init(hotels: [Hotel], llmResponse: String) {
-        self.hotels = hotels
-        self.llmResponse = llmResponse
-        print("📊 Hotels count: \(hotels.count)")
-    }
+    private func selectHotelAndFetchProof(hotel: Hotel) async {
+        guard let hotelUrl = hotel.url else { return }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 1. Otel Listesi
-            ForEach(hotels) { hotel in
-                VStack(alignment: .leading, spacing: 8) {
-                    AsyncImage(url: URL(string: hotel.imageUrl ?? "")) { phase in
-                        if let image = phase.image {
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 180)
-                                .cornerRadius(10)
-                        } else {
-                            ProgressView()
-                        }
-                    }
+        print("🏨 Selected Hotel URL: \(hotelUrl)")
 
-                    Text(hotel.hotelName ?? "Not Available")
-                        .font(.headline)
+        socialProofProvider.selectedHotelUrl = hotelUrl
 
-                    Text("⭐️ \(hotel.rating) | 💬 \(hotel.commentCount)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+        do {
+            let contexts = try await manager.respondWithContexts(to: userPrompt)
 
-                    Text(hotel.locations ?? "Not Available")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .background(Color(UIColor.systemGray6))
-                .cornerRadius(12)
+            if let socialProofContext = contexts.first(where: { ($0["type"] as? String) == "social_proof" }),
+               let socialProofData = socialProofContext["data"] as? [String: Any] {
+                let jsonData = try JSONSerialization.data(withJSONObject: socialProofData, options: [])
+                socialProof = try JSONDecoder().decode(SocialProof.self, from: jsonData)
             }
-
-            // 2. LLM Yanıtı Liste SONUNDA
-            if !llmResponse.isEmpty {
-                Divider()
-                Text(llmResponse)
-                    .font(.body)
-                    .padding()
-                    .foregroundColor(.primary)
-            }
+        } catch {
+            errorMessage = "❌ SocialProof Error: \(error.localizedDescription)"
         }
-        .padding()
     }
 }

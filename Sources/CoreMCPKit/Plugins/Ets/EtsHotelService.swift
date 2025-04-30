@@ -58,11 +58,26 @@ public final class EtsHotelService: EtsHotelServiceProvider  {
         }
     }
     
-    public func fetchComments(for name: String) async throws -> [String] {
-        //https://www.etstur.com/services/api/hotel/detail/
-        return [
-            
-        ]
+    public func fetchComments(for hotelUrl: String) async throws -> [String] {
+       guard let encodedQuery = hotelUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: " https://www.etstur.com/services/api/hotel/detail/\(encodedQuery)") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] ?? [:]
+        
+        if let results = json["result"] as? [[String: Any]],
+           let firstResult = results.first,
+           let firstURL = firstResult["url"] as? String {
+            return firstURL
+        } else {
+            return nil
+        }
         
     }
 
