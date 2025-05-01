@@ -22,7 +22,7 @@ public struct SocialProofCardView: View {
                 .bold()
 
             HStack {
-                Text("⭐️ Rating: \(String(format: "%.1f", socialProof.averageRating))")
+                Text("⭐️ Rating: \(String(format: "%.1f", socialProof.averageRating ?? 0))")
                 Spacer()
                 Text("💬 Reviews: \(socialProof.reviewCount)")
             }
@@ -39,14 +39,14 @@ public struct SocialProofCardView: View {
                         .padding(.top, 8)
 
                     ForEach(features, id: \.name) { feature in
-                        Text("- \(feature.name): \(feature.score, specifier: "%.1f") /5")
+                        Text("- \(feature.name ?? "No Named"): \(feature.score ?? 0, specifier: "%.1f") /5")
                             .font(.subheadline)
                     }
                 }
             }
 
             HStack {
-                Text("📈 Popularity: \(String(format: "%.2f", socialProof.popularityScore))")
+                Text("📈 Popularity: \(String(format: "%.2f", socialProof.popularityScore ?? 0))")
                 Spacer()
                 if let trend = socialProof.trendingStatus {
                     Text("📊 Trend: \(trend.rawValue)")

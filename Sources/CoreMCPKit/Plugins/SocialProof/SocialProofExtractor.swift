@@ -24,8 +24,9 @@ public final class SocialProofExtractor: SocialProofExtractorProtocol {
         
         let prompt = buildPrompt(reviews: reviews, preferences: userPreferences)
         let jsonString = try await llmService.complete(prompt: prompt, contexts: [])
-        let cleanedJSONString = cleanedJSONString(jsonString)
-        guard let jsonData = cleanedJSONString.data(using: .utf8) else {
+        let cleanedJSON = jsonString.cleanedJSON        
+        
+        guard let jsonData = cleanedJSON.data(using: .utf8) else {
             throw SocialProofError.invalidJSON
         }
         
