@@ -34,3 +34,5 @@ public struct Room: Codable {
     let boardType: String?
     let discountRate: Int?
 }
+
+

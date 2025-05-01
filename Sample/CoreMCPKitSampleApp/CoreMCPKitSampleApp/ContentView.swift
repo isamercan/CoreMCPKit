@@ -15,6 +15,18 @@ struct ContentView: View {
     @State private var socialProof: SocialProof? = nil
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
+    
+    @State private var socialProofs: [SocialProof] = []
+    
+    var socialProofDict: [String: SocialProof] {
+        Dictionary(uniqueKeysWithValues:
+                    socialProofs.compactMap { proof in
+            guard let url = proof.hotelUrl else { return nil }
+            return (url, proof)
+        }
+        )
+    }
+
 
     private let manager: MCPAgentManager
     private let socialProofProvider: SocialProofContextProvider
@@ -76,12 +88,12 @@ struct ContentView: View {
                             SocialProofCardView(socialProof: socialProof)
                         }
 
-                        if !hotels.isEmpty, let socialProof = socialProof {
+                        if !hotels.isEmpty {
                             HotelListView(
                                 hotels: hotels,
-                                socialProofs: socialProof
+                                socialProofs: socialProofDict
                             ) { selectedHotel in
-                                self.selectedHotelUrl = selectedHotel.url
+                                await selectHotelAndFetchProof(hotel: selectedHotel)
                             }
                         }
 

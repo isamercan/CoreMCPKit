@@ -8,21 +8,23 @@
 import SwiftUI
 import CoreMCPKit
 
-
 struct HotelListView: View {
     let hotels: [Hotel]
     let socialProofs: [String: SocialProof]
-    let onSelect: (Hotel) -> Void
-
+    let onHotelSelected: (Hotel) async -> Void
+    
     var body: some View {
         List(hotels) { hotel in
             HotelCardView(hotel: hotel, socialProof: socialProofs[hotel.url ?? ""])
                 .onTapGesture {
-                    onSelect(hotel)
+                    Task {
+                        await onHotelSelected(hotel)
+                    }
                 }
         }
     }
 }
+
 
 
 
@@ -48,8 +50,8 @@ struct HotelCardView: View {
                 .font(.headline)
 
             HStack {
-                Text("⭐️ \(hotel.rating)")
-                Text("💬 \(hotel.commentCount)")
+                Text("⭐️ \(hotel.rating ?? 0)")
+                Text("💬 \(hotel.commentCount ?? 0)")
                 Spacer()
             }
             .font(.subheadline)
@@ -59,7 +61,7 @@ struct HotelCardView: View {
                 Divider()
                 Text("💡 \(proof.summary)")
                     .font(.callout)
-                Text("🔥 Popülerlik: \(Int(proof.popularityScore * 100))%")
+                Text("🔥 Popülerlik: \(Int((proof.popularityScore ?? 0) * 100))%")
                     .font(.footnote)
                     .foregroundColor(.orange)
 

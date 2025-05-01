@@ -25,13 +25,26 @@ public final class SocialProofExtractor: SocialProofExtractorProtocol {
         let prompt = buildPrompt(reviews: reviews, preferences: userPreferences)
         
         let jsonString = try await llmService.complete(prompt: prompt, contexts: [])
-        guard let jsonData = jsonString.data(using: .utf8) else {
+        let cleanedJSONString = cleanedJSONString(jsonString)
+        guard let jsonData = cleanedJSONString.data(using: .utf8) else {
             throw SocialProofError.invalidJSON
         }
         
         let decoded = try JSONDecoder().decode(SocialProof.self, from: jsonData)
-        cache.setObject(decoded, forKey: hotelUrl as NSString)
-        return decoded
+        let enriched = SocialProof(
+            hotelUrl: hotelUrl,
+            reviewCount: decoded.reviewCount,
+            averageRating: decoded.averageRating,
+            summary: decoded.summary,
+            popularityScore: decoded.popularityScore,
+            highlightedFeatures: decoded.highlightedFeatures,
+            sentimentBreakdown: decoded.sentimentBreakdown,
+            trendingStatus: decoded.trendingStatus,
+            personalizedSummary: decoded.personalizedSummary
+        )
+        
+        cache.setObject(enriched, forKey: hotelUrl as NSString)
+        return enriched
     }
     
     private func buildPrompt(reviews: [String], preferences: UserPreferences?) -> String {
@@ -70,5 +83,17 @@ public final class SocialProofExtractor: SocialProofExtractorProtocol {
         - Özellikler, sıkça geçen olumlu yorumlardan çıkarılmalı.
         - Trend durumu yorum trendlerine göre belirlenmeli.
         """
+    }
+    
+    func cleanedJSONString(_ raw: String) -> String {
+        var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if cleaned.hasPrefix("```json") || cleaned.hasPrefix("```") {
+            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
+            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
+            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        return cleaned
     }
 }
