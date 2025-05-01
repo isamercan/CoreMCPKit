@@ -28,7 +28,7 @@ public final class EmotionContextProvider: MCPContextProvider {
         """
 
         let jsonString = try await openAIService.send(systemPrompt: systemPrompt, userPrompt: prompt)
-
+        
         guard let jsonData = jsonString.data(using: .utf8) else {
             throw NSError(domain: "EmotionContext", code: 1)
         }

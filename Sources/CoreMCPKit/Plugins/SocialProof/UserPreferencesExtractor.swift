@@ -45,9 +45,11 @@ public final class UserPreferencesExtractor: UserPreferencesExtractorProtocol {
         User Prompt: "\(userPrompt)"
         """
         
-        let response = try await llmService.send(systemPrompt: systemPrompt, userPrompt: fullPrompt)
+        let rawLLMResponse = try await llmService.send(systemPrompt: systemPrompt, userPrompt: fullPrompt)
         
-        guard let jsonData = response.data(using: .utf8) else {
+        let cleaned = rawLLMResponse.cleanedJSON
+        
+        guard let jsonData = cleaned.data(using: .utf8) else {
             throw OpenAIError.invalidResponse
         }
         

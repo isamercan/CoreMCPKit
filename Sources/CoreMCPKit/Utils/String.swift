@@ -29,16 +29,13 @@ public extension String {
         return self
     }
     
-    func cleanedJSONString(_ raw: String) -> String {
-        var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Eğer LLM yanıtı ```json ... ``` şeklindeyse temizle
-        if cleaned.hasPrefix("```json") || cleaned.hasPrefix("```") {
-            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
-            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
-            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    var cleanedJSON: String {
+        var result = self.trimmingCharacters(in: .whitespacesAndNewlines)
+        if result.hasPrefix("```json") || result.hasPrefix("```") {
+            result = result.replacingOccurrences(of: "```json", with: "")
+            result = result.replacingOccurrences(of: "```", with: "")
+            result = result.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-
-        return cleaned
+        return result
     }
 }

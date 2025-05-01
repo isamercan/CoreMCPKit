@@ -59,8 +59,7 @@ public final class PromptToFlexibleQueryParser {
       
         let rawLLMResponse = try await openAIService.send(systemPrompt: systemPrompt, userPrompt: userPrompt)
 
-        // Doğrudan fonksiyon çağır
-        let cleanedJSON = cleanedJSONString(rawLLMResponse)
+        let cleanedJSON = rawLLMResponse.cleanedJSON
 
         print("📊 Cleaned LLM JSON: \(cleanedJSON)")
 
@@ -71,18 +70,6 @@ public final class PromptToFlexibleQueryParser {
         let parsedQuery = try JSONDecoder().decode(FlexibleSearchQuery.self, from: jsonData)
 
         return parsedQuery
-    }
-    
-    func cleanedJSONString(_ raw: String) -> String {
-        var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if cleaned.hasPrefix("```json") || cleaned.hasPrefix("```") {
-            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
-            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
-            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-
-        return cleaned
     }
 
 }

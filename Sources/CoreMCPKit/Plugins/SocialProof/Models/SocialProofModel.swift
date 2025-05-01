@@ -8,6 +8,7 @@
 import Foundation
 
 public class SocialProof: NSObject, Codable {
+    public var hotelUrl: String?
     public let reviewCount: Int?
     public let averageRating: Double?
     public let summary: String?
@@ -16,6 +17,18 @@ public class SocialProof: NSObject, Codable {
     public let sentimentBreakdown: SentimentBreakdown?
     public let trendingStatus: TrendingStatus?
     public let personalizedSummary: String?
+    
+    init(hotelUrl: String?, reviewCount: Int?, averageRating: Double?, summary: String?, popularityScore: Double?, highlightedFeatures: [Feature]?, sentimentBreakdown: SentimentBreakdown?, trendingStatus: TrendingStatus?, personalizedSummary: String?) {
+        self.hotelUrl = hotelUrl
+        self.reviewCount = reviewCount
+        self.averageRating = averageRating
+        self.summary = summary
+        self.popularityScore = popularityScore
+        self.highlightedFeatures = highlightedFeatures
+        self.sentimentBreakdown = sentimentBreakdown
+        self.trendingStatus = trendingStatus
+        self.personalizedSummary = personalizedSummary
+    }
 }
 
 public struct Feature: Codable {
