@@ -11,20 +11,25 @@ import CoreMCPKit
 struct HotelListView: View {
     let hotels: [Hotel]
     let socialProofs: [String: SocialProof]
-    let onHotelSelected: (Hotel) async -> Void
+    let onTap: (Hotel) async -> Void
     
     var body: some View {
-        List(hotels) { hotel in
-            HotelCardView(hotel: hotel, socialProof: socialProofs[hotel.url ?? ""])
+        VStack(spacing: 16) {
+            ForEach(hotels) { hotel in
+                HotelCardView(
+                    hotel: hotel,
+                    socialProof: socialProofs[hotel.url ?? ""]
+                )
+                .padding(.horizontal)
                 .onTapGesture {
                     Task {
-                        await onHotelSelected(hotel)
+                        await onTap(hotel)
                     }
                 }
+            }
         }
     }
 }
-
 
 
 
@@ -50,26 +55,17 @@ struct HotelCardView: View {
                 .font(.headline)
 
             HStack {
-                Text("⭐️ \(hotel.rating ?? 0)")
+                Text("⭐️ Rating: \(5)")
                 Text("💬 \(hotel.commentCount ?? 0)")
                 Spacer()
             }
             .font(.subheadline)
             .foregroundColor(.secondary)
 
+            // SocialProof varsa göster
             if let proof = socialProof {
                 Divider()
-                Text("💡 \(proof.summary)")
-                    .font(.callout)
-                Text("🔥 Popülerlik: \(Int((proof.popularityScore ?? 0) * 100))%")
-                    .font(.footnote)
-                    .foregroundColor(.orange)
-
-                if let sentiment = proof.sentimentBreakdown {
-                    Text("🙂 %\(Int(sentiment.positive)) • 😐 %\(Int(sentiment.neutral)) • 🙁 %\(Int(sentiment.negative))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
+                SocialProofCardView(socialProof: proof)
             }
         }
         .padding(.vertical)

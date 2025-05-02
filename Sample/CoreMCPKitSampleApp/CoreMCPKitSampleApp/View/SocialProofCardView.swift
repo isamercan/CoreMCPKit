@@ -7,64 +7,104 @@
 
 import SwiftUI
 import CoreMCPKit
+import SwiftUI
 
-public struct SocialProofCardView: View {
-    public let socialProof: SocialProof
-
-    public init(socialProof: SocialProof) {
-        self.socialProof = socialProof
+struct SocialProofCardView: View {
+    let socialProof: SocialProof
+    
+    var cleanSummary: String {
+        if let summary = socialProof.summary, !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            return "Özet eklenmedi."
+        }
     }
-
-    public var body: some View {
+    
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Social Proof")
-                .font(.title2)
-                .bold()
-
-            HStack {
-                Text("⭐️ Rating: \(String(format: "%.1f", socialProof.averageRating ?? 0))")
-                Spacer()
-                Text("💬 Reviews: \(socialProof.reviewCount)")
-            }
-            .font(.subheadline)
-
-            Text("📝 Summary: \(socialProof.summary)")
+            Text("💡 \(cleanSummary)")
                 .font(.body)
-                .padding(.vertical, 4)
-
-            if let features = socialProof.highlightedFeatures {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("🏷️ Highlighted Features:")
-                        .font(.headline)
-                        .padding(.top, 8)
-
-                    ForEach(features, id: \.name) { feature in
-                        Text("- \(feature.name ?? "No Named"): \(feature.score ?? 0, specifier: "%.1f") /5")
-                            .font(.subheadline)
-                    }
-                }
-            }
-
+            
             HStack {
-                Text("📈 Popularity: \(String(format: "%.2f", socialProof.popularityScore ?? 0))")
-                Spacer()
+                Text("🔥 Popülerlik: %\(Int((socialProof.popularityScore ?? 0) * 100))")
+                    .font(.footnote)
+                    .foregroundColor(.orange)
+                
                 if let trend = socialProof.trendingStatus {
-                    Text("📊 Trend: \(trend.rawValue)")
+                    Label(trend.rawValue, systemImage: trendIcon(for: trend))
+                        .font(.footnote)
+                        .foregroundColor(trendColor(for: trend))
                 }
             }
-            .font(.subheadline)
-            .padding(.top, 8)
-
-            if let personalizedSummary = socialProof.personalizedSummary {
-                Text("🎯 Personalized Tip: \(personalizedSummary)")
-                    .font(.footnote)
-                    .foregroundColor(.blue)
-                    .padding(.top, 6)
+            
+            if let sentiment = socialProof.sentimentBreakdown {
+                SentimentView(sentiment: sentiment)
+            }
+            
+            if let features = socialProof.highlightedFeatures, !features.isEmpty {
+                HighlightedFeaturesView(features: features)
+            }
+            
+            if let personal = socialProof.personalizedSummary, !personal.isEmpty {
+                Divider()
+                Text("🎯 Sana özel: \(personal)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-        .shadow(radius: 2)
+    }
+    
+    private func trendColor(for status: TrendingStatus) -> Color {
+        switch status {
+            case .improving: return .green
+            case .stable: return .gray
+            case .declining: return .red
+        }
+    }
+    
+    private func trendIcon(for status: TrendingStatus) -> String {
+        switch status {
+            case .improving: return "arrow.up"
+            case .stable: return "equal"
+            case .declining: return "arrow.down"
+        }
+    }
+}
+
+
+struct SentimentView: View {
+    let sentiment: SentimentBreakdown
+    
+    var body: some View {
+        Text("🙂 %\(Int(sentiment.positive)) • 😐 %\(Int(sentiment.neutral)) • 🙁 %\(Int(sentiment.negative))")
+            .font(.caption)
+            .foregroundColor(.gray)
+    }
+}
+
+struct HighlightedFeaturesView: View {
+    let features: [Feature]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("📌 Öne Çıkanlar:")
+                .font(.caption)
+                .bold()
+            
+            ForEach(features, id: \.name) { feature in
+                let name = feature.name ?? ""
+                let scorePercent = Int((feature.score ?? 0) * 100) ?? 0
+                
+                HStack {
+                    Text("• \(name)")
+                    Spacer()
+                    Text("\(scorePercent)%")
+                        .foregroundColor(.blue)
+                }
+                .font(.caption)
+            }
+
+        }
+        .padding(.top, 4)
     }
 }

@@ -20,7 +20,7 @@ public struct Hotel: Codable, Identifiable {
     let hotelName: String?
     let imageUrl: String?
     let locations: String?
-    let rating: Double?
+    //let rating: Double?
     let rooms: [Room]?
     let commentCount: Int?
     let url: String?
@@ -28,9 +28,9 @@ public struct Hotel: Codable, Identifiable {
 }
 
 public struct Room: Codable {
-    let roomName: String
+    let roomName: String?
     let price: Double?
-    let currency: String
+    let currency: String?
     let boardType: String?
     let discountRate: Int?
 }

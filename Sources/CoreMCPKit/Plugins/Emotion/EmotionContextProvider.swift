@@ -29,15 +29,19 @@ public final class EmotionContextProvider: MCPContextProvider {
 
         let jsonString = try await openAIService.send(systemPrompt: systemPrompt, userPrompt: prompt)
         
-        guard let jsonData = jsonString.data(using: .utf8) else {
-            throw NSError(domain: "EmotionContext", code: 1)
+        let cleaned = jsonString.cleanedJSON
+        guard let data = cleaned.data(using: .utf8) else {
+            throw NSError(domain: "EmotionParser", code: 1001, userInfo: nil)
         }
-
-        let decoded = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] ?? [:]
-
-        return [
-            "type": contextType,
-            "data": decoded
-        ]
+        
+        do {
+            let json = try JSONSerialization.jsonObject(with: data)
+            return [
+                "type": contextType,
+                "data": json
+            ]
+        } catch {
+            throw NSError(domain: "Emotion Response Decode", code: 1001, userInfo: nil)
+        }
     }
 }

@@ -84,16 +84,4 @@ public final class SocialProofExtractor: SocialProofExtractorProtocol {
         - Trend durumu yorum trendlerine göre belirlenmeli.
         """
     }
-    
-    func cleanedJSONString(_ raw: String) -> String {
-        var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        if cleaned.hasPrefix("```json") || cleaned.hasPrefix("```") {
-            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
-            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
-            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        
-        return cleaned
-    }
 }

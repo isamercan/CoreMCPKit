@@ -30,7 +30,7 @@ public final class SocialProofContextProvider: MCPContextProvider {
     ) {
         self.provider = provider
         self.preferenceExtractor = preferenceExtractor
-        self.etsService = etsService
+        self.etsService = etsService        
     }
     
     // MARK: - Provide Context
@@ -62,21 +62,26 @@ public final class SocialProofContextProvider: MCPContextProvider {
             "Deniz manzaralı odam harikaydı, tekrar gelirim."
         ]
         let fakeReviews = (0..<30).map { _ in baseReviews.randomElement()! }
-
+        
         // 4. SocialProof Hesapla
         let socialProof = try await provider.fetchSocialProof(for: hotelUrl, reviews: fakeReviews, userPreferences: preferences)
         let socialProofJSON = try JSONEncoder().encode(socialProof)
         let socialProofDict = try JSONSerialization.jsonObject(with: socialProofJSON) as? [String: Any] ?? [:]
-
+        
+        // ✅ Preferences'i JSON-compatible Dictionary'ye çevir
+        let preferencesJSON = try JSONEncoder().encode(preferences)
+        let preferencesDict = try JSONSerialization.jsonObject(with: preferencesJSON) as? [String: Any] ?? [:]
+        
         // 5. Geri Dönüş
         return [
             "type": contextType,
             "data": [
                 "socialProof": socialProofDict,
                 "hotelDetail": detailDict,
-                "preferences": preferences
+                "preferences": preferencesDict
             ]
         ]
+
     }
 
 
