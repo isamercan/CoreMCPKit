@@ -21,7 +21,7 @@ public final class EtsHotelService: EtsHotelServiceProvider  {
             "childAges": query.childAges ?? [],
             "url": query.url ?? "Genel-Otelleri",
             "currency": "TRY",
-            "limit": 20,
+            "limit": 1,
             "offset": 0
         ]
 
@@ -72,4 +72,32 @@ public final class EtsHotelService: EtsHotelServiceProvider  {
         let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] ?? [:]
         return json
     }
+    
+    public func fetchHotelReviews(for hotelCode: String, offset: Int = 0) async throws -> [String: Any] {
+        guard let url = URL(string: "https://www.etstur.com/services/api/review") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "hotelCode": hotelCode,
+            "offset": offset,
+            "sort": "OTELPUAN",
+            "period": "",
+            "categoryType": "OVERALL",
+            "searchText": ""
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] ?? [:]
+        return json
+    }
+
+
 }

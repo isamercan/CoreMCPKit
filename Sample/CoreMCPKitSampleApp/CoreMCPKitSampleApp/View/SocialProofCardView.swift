@@ -82,29 +82,64 @@ struct SentimentView: View {
     }
 }
 
+
+
 struct HighlightedFeaturesView: View {
     let features: [Feature]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("📌 Öne Çıkanlar:")
-                .font(.caption)
-                .bold()
+        VStack(alignment: .leading, spacing: 10) {
+            Text("📌 Öne Çıkan Özellikler")
+                .font(.headline)
+                .padding(.bottom, 4)
             
             ForEach(features, id: \.name) { feature in
-                let name = feature.name ?? ""
-                let scorePercent = Int((feature.score ?? 0) * 100) ?? 0
-                
-                HStack {
-                    Text("• \(name)")
-                    Spacer()
-                    Text("\(scorePercent)%")
-                        .foregroundColor(.blue)
+                if let name = feature.name {
+                    let percentage = Int((feature.score ?? 0) * 100) ?? 0
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(localizedFeatureName(name))
+                                .font(.subheadline)
+                            Spacer()
+                            Text("\(percentage)%")
+                                .foregroundColor(.blue)
+                                .font(.subheadline)
+                                .bold()
+                        }
+                        
+                        Text(featureExplanation(for: name, score: feature.score ?? 0))
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
                 }
-                .font(.caption)
             }
-
         }
-        .padding(.top, 4)
+        .padding(.top, 8)
+    }
+    
+    private func localizedFeatureName(_ name: String) -> String {
+        switch name.lowercased() {
+            case "location": return "Konum"
+            case "food": return "Yemekler"
+            case "pool": return "Havuz"
+            case "staff": return "Personel"
+            case "cleanliness": return "Temizlik"
+            case "price": return "Fiyat"
+            default: return name.capitalized
+        }
+    }
+    
+    private func featureExplanation(for feature: String, score: Double) -> String {
+        switch feature.lowercased() {
+            case "location": return "Konum çok beğeniliyor ve merkezi noktalara yakın."
+            case "food": return "Lezzetli ve çeşitli yemek seçenekleri öne çıkıyor."
+            case "pool": return "Havuz alanı geniş, temiz ve keyifli zaman sunuyor."
+            case "staff": return "Çalışanlar yardımsever ve güler yüzlü bulunuyor."
+            case "cleanliness": return "Temizlik seviyesi yüksek, kullanıcılar memnun."
+            case "price": return "Fiyat/performans dengesi kullanıcılar tarafından olumlu değerlendiriliyor."
+            default: return "Bu özellik hakkında olumlu geri bildirimler alınmış."
+        }
     }
 }
+

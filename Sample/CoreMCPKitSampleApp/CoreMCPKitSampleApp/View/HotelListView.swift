@@ -36,6 +36,8 @@ struct HotelListView: View {
 struct HotelCardView: View {
     let hotel: Hotel
     let socialProof: SocialProof?
+    let reviewInsights: ReviewInsights?
+
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -66,6 +68,12 @@ struct HotelCardView: View {
             if let proof = socialProof {
                 Divider()
                 SocialProofCardView(socialProof: proof)
+            }
+            
+            //ReviewInsights
+            if let insights = reviewInsights {
+                Divider()
+                ReviewInsightCardView(insights: insights)
             }
         }
         .padding(.vertical)
