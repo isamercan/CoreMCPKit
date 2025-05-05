@@ -8,7 +8,7 @@
 import Foundation
 
 public struct ReviewCategoryScore: Codable, Identifiable, Hashable {
-    public let id = UUID()
+    public var id = UUID()
     public let name: String?
     public let score: Double?
     

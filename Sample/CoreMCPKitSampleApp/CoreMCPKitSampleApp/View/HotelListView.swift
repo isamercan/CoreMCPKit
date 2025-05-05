@@ -11,6 +11,7 @@ import CoreMCPKit
 struct HotelListView: View {
     let hotels: [Hotel]
     let socialProofs: [String: SocialProof]
+    let reviewInsights: [String: ReviewInsights]
     let onTap: (Hotel) async -> Void
     
     var body: some View {
@@ -18,7 +19,7 @@ struct HotelListView: View {
             ForEach(hotels) { hotel in
                 HotelCardView(
                     hotel: hotel,
-                    socialProof: socialProofs[hotel.url ?? ""]
+                    socialProof: socialProofs[hotel.url ?? ""], reviewInsights: reviewInsights[hotel.hotelCode ?? ""]
                 )
                 .padding(.horizontal)
                 .onTapGesture {

@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var errorMessage: String?
     
     @State private var socialProofs: [SocialProof] = []
+    @State private var reviewInsights: [ReviewInsights] = []
     
     var socialProofDict: [String: SocialProof] {
         Dictionary(uniqueKeysWithValues:
@@ -26,10 +27,20 @@ struct ContentView: View {
         }
         )
     }
+    
+    var reviewInsightsDict: [String: ReviewInsights] {
+        Dictionary(uniqueKeysWithValues:
+                    reviewInsights.compactMap { insight in
+            guard let hotelCode = insight.hotelCode else { return nil }
+            return (hotelCode, insight)
+        }
+        )
+    }
 
 
     private let manager: MCPAgentManager
     private let socialProofProvider: SocialProofContextProvider
+    private let reviewProvider: ReviewInsightContextProvider
     
     init() {
         do {
@@ -40,6 +51,11 @@ struct ContentView: View {
                         
             let preferences = UserPreferencesExtractor(llmService: openAI)
             let provider = SocialProofExtractor(llmService: openAI)
+            
+            
+            let extractor: ReviewInsightExtractorProtocol = ReviewInsightExtractor(llmService: openAI)
+            let reviewProvider = ReviewInsightProvider(extractor: extractor)
+                        
             let etsService = EtsHotelService()
             
             let socialContextProvider = SocialProofContextProvider(
@@ -47,11 +63,17 @@ struct ContentView: View {
                 preferenceExtractor: preferences,
                 etsService: etsService
             )
+            
+            let reviewContextProvider = ReviewInsightContextProvider(provider: reviewProvider)
 
             let tempManager = MCPAgentManager(config: config)
             tempManager.registerProvider(EmotionContextProvider(openAIService: openAI))
             tempManager.registerProvider(FlexibleContextProvider(parser: parser, etsService: etsService))
+            tempManager.registerProvider(reviewContextProvider)
+            
+            self.reviewProvider = reviewContextProvider
             self.socialProofProvider = socialContextProvider
+            
             tempManager.registerProvider(self.socialProofProvider)
             
             self.manager = tempManager
@@ -85,14 +107,15 @@ struct ContentView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-//                        if let socialProof = socialProof {
-//                            SocialProofCardView(socialProof: socialProof)
-//                        }
+                        if let socialProof = socialProof {
+                            SocialProofCardView(socialProof: socialProof)
+                        }
 
                         if !hotels.isEmpty {
                             HotelListView(
                                 hotels: hotels,
-                                socialProofs: socialProofDict
+                                socialProofs: socialProofDict,
+                                reviewInsights: reviewInsightsDict
                             ) { selectedHotel in
                                 Task {
                                     await selectHotelAndFetchProof(hotel: selectedHotel)
@@ -157,12 +180,14 @@ struct ContentView: View {
                     hotels = try JSONDecoder().decode([Hotel].self, from: etsJSON)
                     if !hotels.isEmpty {
                         await fetchAllSocialProofs(for: hotels)
+                        await fetchAllReviewInsights(for: hotels)
                     }
 
                 } catch {
                     print("❌ Hotel decoding error: \(error)")
                 }
             }
+            
             
             // 🚩 Social Proof
             if let socialContext = contexts.first(where: { ($0["type"] as? String) == "social_proof" }),
@@ -217,6 +242,44 @@ struct ContentView: View {
             for await proof in group {
                 if let valid = proof {
                     socialProofs.append(valid)
+                }
+            }
+        }
+    }
+    
+    
+    private func fetchAllReviewInsights(for hotels: [Hotel]) async {
+        reviewInsights = []
+        
+        await withTaskGroup(of: ReviewInsights?.self) { group in
+            for hotel in hotels {
+                guard let hotelCode = hotel.hotelCode else { continue }
+                
+                group.addTask {
+                    reviewProvider.selectedHotelCode = hotelCode
+                    
+                    do {
+                        let contexts = try await manager.respondWithContexts(to: userPrompt)
+                        if let insightContext = contexts.first(where: { ($0["type"] as? String) == "review_insight" }),
+                           let dataDict = insightContext["data"] as? [String: Any],
+                           let reviewInsightDict = dataDict["insightProof"] as? [String: Any] {
+                            
+                            let jsonData = try JSONSerialization.data(withJSONObject: reviewInsightDict)
+                            var insight = try JSONDecoder().decode(ReviewInsights.self, from: jsonData)
+                            insight.hotelCode = hotelCode
+                            return insight
+                        }
+                    } catch {
+                        print("❌ ReviewInsight fetch failed for \(hotelCode): \(error.localizedDescription)")
+                    }
+                    
+                    return nil
+                }
+            }
+            
+            for await insight in group {
+                if let valid = insight {
+                    reviewInsights.append(valid)
                 }
             }
         }

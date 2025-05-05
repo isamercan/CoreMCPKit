@@ -8,7 +8,7 @@
 import Foundation
 
 public struct ReviewInsights: Codable {
-    public let hotelCode: String?
+    public var hotelCode: String?
     /// Average review score. Note: This score is typically out of 100.
     public let averageScore: Double?
     
@@ -41,27 +41,4 @@ public struct ReviewInsights: Codable {
         self.latestReviews = latestReviews
         self.overallAverage = overallAverage
     }
-}
-
-
-
-public struct ReviewInsightFlag: Codable, Identifiable {
-    public var id: String { type ?? "SERVICE_NOT_VERIFIED" }
-    
-    public let type: String?         // Örn: "SERVICE_VERYGOOD"
-    public let name: String?         // Örn: "Hizmeti Çok İyi"
-    public let point: Int?           // Örn: 94
-}
-
-import Foundation
-
-public struct ReviewSnippet: Codable, Identifiable {
-    public var id: String { "\(name)-\(date)" }
-    
-    public let name: String?         // Maskelenmiş isim (örn: "A***")
-    public let reviewText: String?   // Yorumu
-    public let date: String?         // Örn: "2025 Nisan"
-    public let guestType: String?   // Örn: "Aile", "Çift"
-    public let score: Double?       // Örn: 100.0
-    public let roomName: String?    // Örn: "A Blok Kara Tarafı"
 }

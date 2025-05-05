@@ -15,7 +15,7 @@ public final class UserPreferencesExtractor: UserPreferencesExtractorProtocol {
     }
     
     
-    private func buildPrompt(from userPrompt: String) -> String {
+    private var systemPrompt: String {
         let systemPrompt = """
         You are a system that extracts structured hotel preferences from a user's travel request.
         
@@ -39,8 +39,6 @@ public final class UserPreferencesExtractor: UserPreferencesExtractorProtocol {
     }
     
     public func extractPreferences(from userPrompt: String) async throws -> UserPreferences {
-        let systemPrompt = buildPrompt(from: userPrompt)
-        
         let fullPrompt = """
         User Prompt: "\(userPrompt)"
         """

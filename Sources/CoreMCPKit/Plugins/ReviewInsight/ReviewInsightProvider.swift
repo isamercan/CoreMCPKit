@@ -14,15 +14,16 @@ public protocol ReviewInsightProviding {
 
 /// Default implementation that fetches raw hotel review data and parses it into structured insights.
 public final class ReviewInsightProvider: ReviewInsightProviding {
-    private let parser: ReviewInsightParsing
+    private let extractor: ReviewInsightExtractorProtocol
     private let service: EtsHotelServiceProvider
     
     /// Initializes the provider with custom or default parser and API service.
     public init(
-        parser: ReviewInsightParsing = ReviewInsightParser(),
+        extractor: ReviewInsightExtractorProtocol,
         service: EtsHotelServiceProvider = EtsHotelService()
     ) {
-        self.parser = parser
+        
+        self.extractor = extractor
         self.service = service
     }
     
@@ -31,6 +32,23 @@ public final class ReviewInsightProvider: ReviewInsightProviding {
     /// - Returns: Parsed `ReviewInsights` object.
     public func fetchInsights(for hotelCode: String) async throws -> ReviewInsights {
         let raw = try await service.fetchHotelReviews(for: hotelCode, offset: 0)
-        return try parser.parse(from: raw, hotelCode: hotelCode)
+        
+        print(raw)
+        let baseReviews = [
+            "Otel çok temizdi, personel güler yüzlüydü.",
+            "Yemekler harikaydı ama odalar biraz küçüktü.",
+            "Konum çok merkeziydi, sahile çok yakındı.",
+            "Wi-Fi biraz yavaştı ama genel olarak memnun kaldım.",
+            "Havuz alanı çok geniş ve temizdi, çocuklar çok eğlendi.",
+            "Kahvaltı açık büfe ve çok çeşitliydi.",
+            "Fiyat/performans açısından çok iyi bir oteldi.",
+            "Klima çalışmıyordu, biraz sorun yaşadık.",
+            "Personel çözüm odaklıydı, sorunları hızlıca çözdüler.",
+            "Deniz manzaralı odam harikaydı, tekrar gelirim."
+        ]
+        let fakeReviews = (0..<30).map { _ in baseReviews.randomElement()! }
+        
+        
+        return try await extractor.fetchReviewInsights(for: hotelCode, reviews: fakeReviews)
     }
 }

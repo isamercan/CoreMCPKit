@@ -18,6 +18,7 @@ public struct Hotel: Codable, Identifiable {
     
     let hotelId: String?
     let hotelName: String?
+    let hotelCode: String?
     let imageUrl: String?
     let locations: String?
     //let rating: Double?

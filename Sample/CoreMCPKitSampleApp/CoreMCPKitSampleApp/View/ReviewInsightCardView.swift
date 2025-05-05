@@ -22,40 +22,25 @@ struct ReviewInsightCardView: View {
                 HStack {
                     Text("🔢 Genel Puan:")
                     Spacer()
-                    Text(String(format: "%.0f/100", avg.score))
+                    Text(String(format: "%.0f/100", avg.score ?? 0))
                         .bold()
                         .foregroundColor(.primary)
                 }
             }
             
+
             // Tavsiye Etme
-            if let recommendation = insights.recommendationScore {
+            if let recommendation = insights.recommendationRate {
                 HStack {
                     Text("👍 Tavsiye Oranı:")
                     Spacer()
-                    Text("\(Int(recommendation.score))%")
+                    Text("\(Int((recommendation ?? 0) * 100))%")
                         .bold()
                         .foregroundColor(.green)
                 }
             }
             
-            // Öne Çıkan Skorlar
-            if !insights.highlightedScores.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("📌 Öne Çıkan Kategoriler:")
-                        .font(.subheadline)
-                        .bold()
-                    ForEach(insights.highlightedScores, id: \.name) { item in
-                        HStack {
-                            Text("• \(item.name)")
-                            Spacer()
-                            Text("\(Int(item.score))")
-                                .foregroundColor(.blue)
-                        }
-                        .font(.caption)
-                    }
-                }
-            }
+           
             
             // Güçlü Yönler (Flags)
             if let flags = insights.flags, !flags.isEmpty {
