@@ -58,7 +58,7 @@ public final class EtsHotelService: EtsHotelServiceProvider  {
         }
     }
     
-    public func fetchHotelDetail(for hotelUrl: String) async throws -> [String: Any] {
+    public func fetchDetail(for hotelUrl: String) async throws -> [String: Any] {
        guard let encodedQuery = hotelUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: "https://www.etstur.com/services/api/hotel/detail/\(encodedQuery)") else {
             throw URLError(.badURL)
@@ -72,8 +72,8 @@ public final class EtsHotelService: EtsHotelServiceProvider  {
         let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] ?? [:]
         return json
     }
-    
-    public func fetchHotelReviews(for hotelCode: String, offset: Int = 0) async throws -> [String: Any] {
+
+    public func fetchReviews(for hotelCode: String, offset: Int = 10) async throws -> [String: Any] {
         guard let url = URL(string: "https://www.etstur.com/services/api/review") else {
             throw URLError(.badURL)
         }

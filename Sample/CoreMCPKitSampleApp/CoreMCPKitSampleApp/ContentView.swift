@@ -47,16 +47,12 @@ struct ContentView: View {
             let apiKey = try Configuration.openAIApiKey
             let config = MCPConfiguration(openAIApiKey: apiKey)
             let openAI = OpenAIProvider(apiKey: config.openAIApiKey)
+            let etsService = EtsHotelService()
+            
             let parser = PromptToFlexibleQueryParser(openAIService: openAI)
                         
             let preferences = UserPreferencesExtractor(llmService: openAI)
             let provider = SocialProofExtractor(llmService: openAI)
-            
-            
-            let extractor: ReviewInsightExtractorProtocol = ReviewInsightExtractor(llmService: openAI)
-            let reviewProvider = ReviewInsightProvider(extractor: extractor)
-                        
-            let etsService = EtsHotelService()
             
             let socialContextProvider = SocialProofContextProvider(
                 provider: provider,
@@ -64,16 +60,17 @@ struct ContentView: View {
                 etsService: etsService
             )
             
-            let reviewContextProvider = ReviewInsightContextProvider(provider: reviewProvider)
+            let extractor: ReviewInsightExtractorProtocol = ReviewInsightExtractor(llmService: openAI)
+            let reviewProvider = ReviewInsightProvider(extractor: extractor)
+            self.reviewProvider = ReviewInsightContextProvider(provider: reviewProvider)
+            
+            
+            self.socialProofProvider = socialContextProvider
 
             let tempManager = MCPAgentManager(config: config)
             tempManager.registerProvider(EmotionContextProvider(openAIService: openAI))
             tempManager.registerProvider(FlexibleContextProvider(parser: parser, etsService: etsService))
-            tempManager.registerProvider(reviewContextProvider)
-            
-            self.reviewProvider = reviewContextProvider
-            self.socialProofProvider = socialContextProvider
-            
+            tempManager.registerProvider(self.reviewProvider)
             tempManager.registerProvider(self.socialProofProvider)
             
             self.manager = tempManager
@@ -145,6 +142,11 @@ struct ContentView: View {
                                 .foregroundColor(.gray)
                         }
                         
+                        if !isLoading && reviewInsights.isEmpty {
+                            Text("No Review Insights response found.")
+                                .foregroundColor(.gray)
+                        }
+                        
                         if !isLoading && llmResponse.isEmpty {
                             Text("No LLM response found.")
                                 .foregroundColor(.gray)
@@ -180,6 +182,9 @@ struct ContentView: View {
                     hotels = try JSONDecoder().decode([Hotel].self, from: etsJSON)
                     if !hotels.isEmpty {
                         await fetchAllSocialProofs(for: hotels)
+                    }
+                    
+                    if !hotels.isEmpty {
                         await fetchAllReviewInsights(for: hotels)
                     }
 
@@ -198,7 +203,16 @@ struct ContentView: View {
                 let proof = try JSONDecoder().decode(SocialProof.self, from: jsonData)
                 socialProofs = [proof]
             }
-
+            
+            
+            if let reviewContext = contexts.first(where: { ($0["type"] as? String) == "review_insights" }),
+               let dataDict = reviewContext["data"] as? [String: Any],
+               let reviewInsightsDict = dataDict["reviewInsights"] as? [String: Any] {
+                
+                let jsonData = try JSONSerialization.data(withJSONObject: reviewInsightsDict)
+                let insight = try JSONDecoder().decode(ReviewInsights.self, from: jsonData)
+                reviewInsights = [insight]
+            }
             
             // 🚩 LLM Explanation
             llmResponse = try await manager.respond(to: userPrompt)
@@ -227,7 +241,7 @@ struct ContentView: View {
                            let socialProofDict = dataDict["socialProof"] as? [String: Any] {
                             
                             let jsonData = try JSONSerialization.data(withJSONObject: socialProofDict)
-                            var proof = try JSONDecoder().decode(SocialProof.self, from: jsonData)
+                            let proof = try JSONDecoder().decode(SocialProof.self, from: jsonData)
                             proof.hotelUrl = url // important for mapping
                             return proof
                         }

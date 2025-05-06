@@ -19,7 +19,8 @@ struct HotelListView: View {
             ForEach(hotels) { hotel in
                 HotelCardView(
                     hotel: hotel,
-                    socialProof: socialProofs[hotel.url ?? ""], reviewInsights: reviewInsights[hotel.hotelCode ?? ""]
+                    socialProof: socialProofs[hotel.url ?? ""],
+                    reviewInsights: reviewInsights[hotel.hotelCode ?? ""]
                 )
                 .padding(.horizontal)
                 .onTapGesture {
@@ -38,7 +39,6 @@ struct HotelCardView: View {
     let hotel: Hotel
     let socialProof: SocialProof?
     let reviewInsights: ReviewInsights?
-
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

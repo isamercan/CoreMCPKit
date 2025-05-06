@@ -18,7 +18,8 @@ public final class OpenAIProvider: LLMProvider {
     ///   - apiKey: The OpenAI API key for authentication.
     ///   - baseURL: The base URL for the OpenAI API (default: "https://api.openai.com/v1").
     ///   - model: The model to use for completions (default: "gpt-4o").
-    public init(apiKey: String, baseURL: String = "https://api.openai.com/v1", model: String = "gpt-4o") {
+    public init(apiKey: String, baseURL: String = "https://api.openai.com/v1", model: String = "o4-mini") {
+        //Models: o4-mini-2025-04-16 || gpt-4o
         self.apiKey = apiKey
         self.baseURL = URL(string: baseURL)!
         self.model = model

@@ -12,7 +12,12 @@ public struct ReviewCategoryScore: Codable, Identifiable, Hashable {
     public let name: String?
     public let score: Double?
     
-    public init(name: String, score: Double) {
+    enum CodingKeys: String, CodingKey {
+        case name
+        case score
+    }
+    
+    public init(name: String?, score: Double?) {
         self.name = name
         self.score = score
     }

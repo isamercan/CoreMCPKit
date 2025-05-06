@@ -31,7 +31,7 @@ public final class ReviewInsightProvider: ReviewInsightProviding {
     /// - Parameter hotelCode: Vendor-specific hotel code (e.g., "CLVOBE").
     /// - Returns: Parsed `ReviewInsights` object.
     public func fetchInsights(for hotelCode: String) async throws -> ReviewInsights {
-        let raw = try await service.fetchHotelReviews(for: hotelCode, offset: 0)
+        let raw = try await service.fetchReviews(for: hotelCode, offset: 0)
         
         print(raw)
         let baseReviews = [

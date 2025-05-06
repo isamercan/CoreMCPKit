@@ -41,7 +41,7 @@ public final class SocialProofContextProvider: MCPContextProvider {
         }
 
         // 1. Otel Detaylarını ve Yorumları Çek
-        let detailDict = try await etsService.fetchHotelDetail(for: hotelUrl)
+        let detailDict = try await etsService.fetchDetail(for: hotelUrl)
         print("✅ Hotel Detail: \(detailDict)")
 
         // 2. Kullanıcı Tercihlerini LLM'den Çek

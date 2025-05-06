@@ -9,6 +9,6 @@ import Foundation
 public protocol EtsHotelServiceProvider {
     func searchHotels(query: EtsHotelSearchQuery) async throws -> [String: Any]
     func autoComplete(query: String) async throws -> String?
-    func fetchHotelDetail(for hotelUrl: String) async throws -> [String: Any]
-    func fetchHotelReviews(for hotelCode: String, offset: Int) async throws -> [String: Any]
+    func fetchDetail(for hotelUrl: String) async throws -> [String: Any]
+    func fetchReviews(for hotelCode: String, offset: Int) async throws -> [String: Any]
 }
