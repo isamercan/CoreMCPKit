@@ -20,6 +20,10 @@ public final class MCPAgentManager {
     public func registerProvider(_ provider: MCPContextProvider) {
         contextProviders.append(provider)
     }
+    
+    public func resetProviders() {
+        contextProviders.removeAll()
+    }
 
     public func respond(to prompt: String) async throws -> String {
         let contexts = try await respondWithContexts(to: prompt)

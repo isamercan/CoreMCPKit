@@ -17,6 +17,14 @@ public final class ReviewInsightContextProvider: MCPContextProvider {
         self.provider = provider
     }
     
+    
+    public func fetchInsights(for hotelCode: String) async throws -> ReviewInsights {
+        let insights = try await provider.fetchInsights(for: hotelCode)
+        printReviewInsights(insights)
+        return insights
+    }
+    
+    
     public func provideContext(for prompt: String) async throws -> [String: Any] {
         //let code = selectedHotelCode
         guard let code = selectedHotelCode else {

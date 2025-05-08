@@ -20,7 +20,7 @@ struct HotelListView: View {
                 HotelCardView(
                     hotel: hotel,
                     socialProof: socialProofs[hotel.url ?? ""],
-                    reviewInsights: reviewInsights[hotel.hotelCode ?? ""]
+                    reviewInsights: reviewInsights[hotel.url ?? ""]
                 )
                 .padding(.horizontal)
                 .onTapGesture {
